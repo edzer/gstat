@@ -434,18 +434,18 @@ estiStAni <- function(empVgm, interval, method="linear", spatialVgm, temporalVgm
 
 # linear
 estiStAni.lin <- function(empVgm, interval) {
-  lmSp <- lm(gamma~dist, empVgm[empVgm$timelag == 0,])
+  lmSp <- lm(gamma~dist, empVgm[empVgm$timelag == min(empVgm$timelag),])
   
-  optFun <- function(stAni, empVgm) {
-    sqrt(mean((predict(lmSp, newdata = data.frame(dist=empVgm[empVgm$spacelag == 0,]$timelag*stAni)) - empVgm[empVgm$spacelag == 0,]$gamma)^2, na.rm=TRUE))
-  }
+  optFun <- function(stAni) {
+    sqrt(mean((predict(lmSp, newdata = data.frame(dist=empVgm[empVgm$spacelag == min(empVgm$spacelag),]$timelag*stAni)) - empVgm[empVgm$spacelag == min(empVgm$spacelag),]$gamma)^2, na.rm=TRUE))
   
   optimise(optFun, interval, empVgm = empVgm)$minimum  
 }
 
+}
 # range
 estiAni.range <- function(empVgm, spatialVgm, temporalVgm) {
-  spEmpVgm <- empVgm[empVgm$timelag == 0,]
+  spEmpVgm <- empVgm[empVgm$timelag == min(empVgm$timelag),]
   class(spEmpVgm) <- c("gstatVariogram","data.frame")
   spEmpVgm <- spEmpVgm[-1,1:3]
   spEmpVgm$dir.hor <- 0
@@ -453,7 +453,7 @@ estiAni.range <- function(empVgm, spatialVgm, temporalVgm) {
   
   spatialVgm <- fit.variogram(spEmpVgm, spatialVgm)
   
-  tmpEmpVgm <- empVgm[empVgm$spacelag == 0,]
+  tmpEmpVgm <- empVgm[empVgm$spacelag == min(empVgm$timelag),]
   class(tmpEmpVgm) <- c("gstatVariogram","data.frame")
   tmpEmpVgm <- tmpEmpVgm[-1,c("np","timelag","gamma")]
   colnames(tmpEmpVgm) <- c("np", "dist", "gamma")
@@ -467,7 +467,7 @@ estiAni.range <- function(empVgm, spatialVgm, temporalVgm) {
 
 # variograms
 estiAni.vgm <- function(empVgm, spatialVgm, interval) {
-  spEmpVgm <- empVgm[empVgm$timelag == 0,]
+  spEmpVgm <- empVgm[empVgm$timelag == min(empVgm$timelag),]
   class(spEmpVgm) <- c("gstatVariogram","data.frame")
   spEmpVgm <- spEmpVgm[-1,1:3]
   spEmpVgm$dir.hor <- 0
@@ -476,7 +476,7 @@ estiAni.vgm <- function(empVgm, spatialVgm, interval) {
   spatialVgm <- fit.variogram(spEmpVgm, spatialVgm)
   
   optFun <- function(stAni) {
-    sqrt(mean((variogramLine(spatialVgm, dist_vector = empVgm[empVgm$spacelag == 0,]$timelag*stAni)$gamma - empVgm[empVgm$spacelag == 0,]$gamma)^2, na.rm=TRUE))
+    sqrt(mean((variogramLine(spatialVgm, dist_vector = empVgm[empVgm$spacelag == min(empVgm$spacelag),]$timelag*stAni)$gamma - empVgm[empVgm$spacelag == min(empVgm$spacelag),]$gamma)^2, na.rm=TRUE))
   }
   
   optimise(optFun, interval)$minimum
